@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SpiderFarmer RS-485 Connection",
+        "description": "Enter the serial port of your USB-RS485 adapter connected to the SpiderFarmer GGS bus.",
+        "data": {
+          "serial_port": "Serial port",
+          "baudrate": "Baud rate"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot open serial port. Check the path and permissions.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This serial port is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "air_temperature": { "name": "Air temperature" },
+      "air_humidity": { "name": "Air humidity" },
+      "vpd": { "name": "VPD" },
+      "soil_temperature": { "name": "Soil temperature" },
+      "ppfd": { "name": "PPFD" },
+      "co2": { "name": "CO₂" }
+    },
+    "fan": {
+      "blower": { "name": "Blower" }
+    },
+    "light": {
+      "light": { "name": "Light" }
+    }
+  }
+}

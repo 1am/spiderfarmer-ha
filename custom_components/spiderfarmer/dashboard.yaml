@@ -1,0 +1,77 @@
+# SpiderFarmer GSS – example Lovelace view
+#
+# Drop this into an existing dashboard (Settings → Dashboards → Edit → Raw
+# configuration editor), or register it as a standalone YAML dashboard in
+# configuration.yaml:
+#
+#   lovelace:
+#     dashboards:
+#       spiderfarmer:
+#         mode: yaml
+#         title: SpiderFarmer
+#         icon: mdi:sprout
+#         show_in_sidebar: true
+#         filename: custom_components/spiderfarmer/dashboard.yaml
+#
+# Entity IDs below follow Home Assistant's default slug rules:
+#   <domain>.<device_name>_<translation_key>
+# e.g. "SpiderFarmer sensor_hub" + "air_temperature" ⇒
+#      sensor.spiderfarmer_sensor_hub_air_temperature
+#
+# If your device names differ (e.g. you renamed them in HA, or you have
+# multiple hubs), adjust the IDs after importing.
+
+title: SpiderFarmer
+icon: mdi:sprout
+path: spiderfarmer
+cards:
+  - type: vertical-stack
+    cards:
+      - type: markdown
+        content: "## Environment"
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.spiderfarmer_sensor_hub_air_temperature
+            name: Air temperature
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.spiderfarmer_sensor_hub_air_humidity
+            name: Humidity
+            icon: mdi:water-percent
+          - type: tile
+            entity: sensor.spiderfarmer_sensor_hub_vpd
+            name: VPD
+            icon: mdi:gauge
+          - type: tile
+            entity: sensor.spiderfarmer_sensor_hub_soil_temperature
+            name: Soil temperature
+            icon: mdi:thermometer-low
+          - type: tile
+            entity: sensor.spiderfarmer_co2_sensor_co2
+            name: CO₂
+            icon: mdi:molecule-co2
+
+      - type: markdown
+        content: "## Controls"
+
+      # Grow light — on/off + brightness (routes to 0x04 dimmer)
+      - type: tile
+        entity: light.spiderfarmer_sensor_hub_light_1
+        name: Grow light
+        icon: mdi:lightbulb
+        features:
+          - type: light-brightness
+
+      # Blower / ventilation at 0x06 (OEM UI calls this "Light 2").
+      # HA domain is `fan.` because that's HA's primitive for variable-
+      # speed rotating things — the entity is surfaced as "Blower".
+      - type: tile
+        entity: fan.spiderfarmer_blower_0x06_blower
+        name: Blower
+        icon: mdi:fan
+        features:
+          - type: fan-speed

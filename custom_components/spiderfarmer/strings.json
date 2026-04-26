@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SpiderFarmer RS-485 bus",
+        "description": "Connect one RS-485 bus (one USB-RS485 adapter). Add the integration again per additional bus — each config entry is independent, so devices with the same address on different busses (e.g. two 0x04 dimmers) coexist cleanly.",
+        "data": {
+          "serial_port": "Serial port",
+          "baudrate": "Baud rate",
+          "bus_name": "Bus name (optional)"
+        },
+        "data_description": {
+          "bus_name": "Friendly label used for the bus hub device and to disambiguate peripherals across multiple busses. Defaults to the port basename (e.g. \"ttyUSB0\")."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot open serial port. Check the path and permissions.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This serial port is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "air_temperature": { "name": "Air temperature" },
+      "air_humidity": { "name": "Air humidity" },
+      "vpd": { "name": "VPD" },
+      "soil_temperature": { "name": "Soil temperature" },
+      "ppfd": { "name": "PPFD" },
+      "co2": { "name": "CO₂" }
+    },
+    "fan": {
+      "blower": { "name": "Blower" }
+    },
+    "light": {
+      "light": { "name": "Light" }
+    },
+    "number": {
+      "light_brightness": { "name": "Light brightness" },
+      "blower_percent": { "name": "Blower speed" }
+    }
+  }
+}

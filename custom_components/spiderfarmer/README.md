@@ -11,13 +11,6 @@ here as a **git submodule** at
 it as a relative package (`from .spiderwire.bus import …`); no PyPI
 hop, no separate `pip install`.
 
-> **Unofficial and experimental.** This is an independent project with no
-> affiliation, endorsement, or relationship with SpiderFarmer. It works
-> on my hardware, but the GSS ecosystem ships in many hardware and
-> firmware revisions — yours may behave differently or not work at all.
-> Expect rough edges and verify behavior on your own bus before relying
-> on it.
-
 ## Requirements
 
 - Home Assistant **2024.12** or newer (uses `runtime_data` and the
@@ -51,50 +44,6 @@ cp -r spiderfarmer-ha/custom_components/spiderfarmer \
 
 Restart Home Assistant, then add the integration via **Settings →
 Devices & Services → Add Integration → SpiderFarmer GSS**.
-
-## Install — Make (SSH deploy)
-
-Use this when you keep a git checkout on your machine and Home
-Assistant runs on another host you can reach with **SSH** and
-**rsync** (Home Assistant OS with the SSH add-on, Supervised, a VM,
-etc.). The integration directory is pushed to
-`<HA_CONFIG>/custom_components/spiderfarmer/`.
-
-1. Clone the repo **with the `spiderwire` submodule** (the deploy script
-   refuses an empty submodule tree):
-
-   ```bash
-   git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
-   cd spiderfarmer-ha
-   # if you already cloned without submodules:
-   git submodule update --init --recursive
-   ```
-
-2. Show targets and default variables:
-
-   ```bash
-   make help
-   ```
-
-3. Deploy the integration over SSH (override host, port, and HA config
-   path on the remote as needed):
-
-   ```bash
-   make deploy HA_HOST=root@homeassistant.local HA_PORT=22 HA_CONFIG=/config
-   ```
-
-   To deploy and then run **`ha core restart`** on the host:
-
-   ```bash
-   make deploy-restart HA_HOST=root@homeassistant.local HA_CONFIG=/config
-   ```
-
-   Defaults match [`Makefile`](Makefile): `HA_HOST` is
-   `root@10.10.10.10`, `HA_PORT` is `22`, `HA_CONFIG` is `/homeassistant`
-   — set all three explicitly if those do not match your setup.
-
-4. In Home Assistant: **Settings → Devices & Services → Add Integration
-   → SpiderFarmer GSS**.
 
 ## Configuration
 
@@ -177,35 +126,3 @@ git submodule update --init --recursive
 See [`DEVELOPMENT.md`](DEVELOPMENT.md) for symlinking this checkout
 into a dev HA instance, enabling debug logs, and the
 edit-reload-iterate loop.
-
-## Disclaimer
-
-This integration is an **independent, unofficial** project. It is not
-affiliated with, endorsed by, or supported by SpiderFarmer. SpiderFarmer
-does not officially support any use of their hardware outside of their
-own ecosystem (their app and cloud services), and this project relies
-entirely on the reverse-engineered RS-485 protocol implemented in
-[`spiderwire`](https://github.com/1am/spiderwire). It works **only**
-with SpiderWire and the device set documented there; no other transport,
-firmware, or device is supported.
-
-This software is provided "as is", without warranty of any kind, express
-or implied, including but not limited to the warranties of
-merchantability, fitness for a particular purpose, and non-infringement.
-
-This integration drives mains-powered grow equipment (lights, fans,
-blowers) over an RS-485 bus. Incorrect wiring, miswired connectors,
-unsupported devices, firmware revisions that diverge from the documented
-register map, or misuse of the protocol can damage hardware, void the
-manufacturer's warranty, cause fire, or result in personal injury. You
-are solely responsible for verifying the correctness of your wiring,
-your device configuration, and the commands sent by Home Assistant
-(including automations and scripts you author on top of this
-integration).
-
-In no event shall the author or contributors be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages —
-including but not limited to damage to equipment, crops, property, or
-persons — arising from the use of, or inability to use, this software.
-
-Use at your own risk.

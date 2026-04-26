@@ -1,0 +1,4 @@
+[submodule "custom_components/spiderfarmer/spiderwire"]
+	path = custom_components/spiderfarmer/spiderwire
+	url = git@github.com:1am/spiderwire.git
+	branch = feat/pre-release
