@@ -5,11 +5,10 @@ peripheral bus (inline fans, CO₂ sensor, sensor hub, light driver) over
 a USB ↔ RS-485 adapter. No cloud, no app account.
 
 The Modbus protocol layer lives in a separate repo,
-[`spiderwire`](https://github.com/1am/spiderwire), and is pulled in
-here as a **git submodule** at
-`custom_components/spiderfarmer/spiderwire/`. The integration imports
-it as a relative package (`from .spiderwire.bus import …`); no PyPI
-hop, no separate `pip install`.
+[`spiderwire`](https://github.com/1am/spiderwire), and is published on
+PyPI as [`spiderwire`](https://pypi.org/project/spiderwire/). It is
+declared in `manifest.json` `requirements`, so Home Assistant installs
+it automatically — no submodule, no manual `pip install`.
 
 > **Unofficial and experimental.** This is an independent project with no
 > affiliation, endorsement, or relationship with SpiderFarmer. It works
@@ -24,33 +23,32 @@ hop, no separate `pip install`.
   `config_entry`-aware `DataUpdateCoordinator`).
 - A USB-RS485 adapter wired to the GGS bus (A/B + GND), visible in HA
   as `/dev/ttyUSB0` or similar.
-- `pyserial>=3.5` — pulled in automatically via `manifest.json`
-  `requirements`.
+- `pyserial>=3.5` and
+  [`spiderwire`](https://pypi.org/project/spiderwire/) — pulled in
+  automatically via `manifest.json` `requirements`.
 
 ## Install — HACS
 
 1. In HACS → **Integrations → ⋮ → Custom repositories**.
 2. Add `https://github.com/1am/spiderfarmer-ha` as category
    **Integration**.
-3. Search for *SpiderFarmer GSS* and install.
+3. Search for _SpiderFarmer GSS_ and install.
 4. Restart Home Assistant.
 5. **Settings → Devices & Services → Add Integration → SpiderFarmer GSS**.
-
-> HACS note: HACS clones the integration without recursing submodules,
-> so the released `main` branch ships a vendored copy of `spiderwire/`
-> rather than an empty submodule. The submodule pointer is what
-> developers see when they clone the repo with `git clone --recurse-submodules`.
 
 ## Install — manual
 
 ```bash
-git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
+git clone https://github.com/1am/spiderfarmer-ha.git
 cp -r spiderfarmer-ha/custom_components/spiderfarmer \
       /path/to/homeassistant/config/custom_components/
 ```
 
 Restart Home Assistant, then add the integration via **Settings →
-Devices & Services → Add Integration → SpiderFarmer GSS**.
+Devices & Services → Add Integration → SpiderFarmer GSS**. Home
+Assistant installs the
+[`spiderwire`](https://pypi.org/project/spiderwire/) protocol library
+from PyPI on first start.
 
 ## Install — Make (SSH deploy)
 
@@ -60,14 +58,11 @@ Assistant runs on another host you can reach with **SSH** and
 etc.). The integration directory is pushed to
 `<HA_CONFIG>/custom_components/spiderfarmer/`.
 
-1. Clone the repo **with the `spiderwire` submodule** (the deploy script
-   refuses an empty submodule tree):
+1. Clone the repo:
 
    ```bash
-   git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
+   git clone https://github.com/1am/spiderfarmer-ha.git
    cd spiderfarmer-ha
-   # if you already cloned without submodules:
-   git submodule update --init --recursive
    ```
 
 2. Show targets and default variables:
@@ -94,19 +89,24 @@ etc.). The integration directory is pushed to
    — set all three explicitly if those do not match your setup.
 
 4. In Home Assistant: **Settings → Devices & Services → Add Integration
-   → SpiderFarmer GSS**.
+   → SpiderFarmer GSS**. Home Assistant installs the
+   [`spiderwire`](https://pypi.org/project/spiderwire/) library from
+   PyPI on first start.
 
 ## Configuration
 
 You'll be asked for:
 
-| Field | Default | Notes |
-| --- | --- | --- |
-| Serial port | `/dev/ttyUSB0` | Path to your USB-RS485 adapter |
-| Baud rate | `115200` | Stock SpiderFarmer firmware speed |
-| Bus name | port basename | Friendly label for this bus (see "Multiple busses" below) |
+| Field       | Default        | Notes                                                     |
+| ----------- | -------------- | --------------------------------------------------------- |
+| Serial port | `/dev/ttyUSB0` | Path to your USB-RS485 adapter                            |
+| Baud rate   | `115200`       | Stock SpiderFarmer firmware speed                         |
+| Bus name    | port basename  | Friendly label for this bus (see "Multiple busses" below) |
 
-The integration polls every device on the bus every 5 seconds.
+The integration mirrors the OEM hub's tiered polling cadence: fast
+sensors (CO₂, sensor hub) every ~1 s, actuators (dimmer, blower) every
+~2.5 s, with a slower scan and a setpoint heartbeat in the background.
+That schedule is internal to the protocol layer; HA just ticks it.
 
 ### Multiple busses
 
@@ -158,25 +158,37 @@ Entities are created automatically for each device discovered on the bus:
   [`gss-ctrl`](https://github.com/1am/spiderwire) from the SpiderWire
   repo: `gss-ctrl /dev/ttyUSB0 scan -v`.
 - **Bus errors / partial data** – the coordinator keeps the last good
-  reading for up to 3 consecutive failures per device before marking it
-  offline. Check HA logs under the `custom_components.spiderfarmer`
-  logger.
+  reading until a device misses ~30 consecutive polls before marking it
+  offline (the OEM bus is bursty — the sensor hub in particular can go
+  silent for tens of seconds and then resume). Check HA logs under the
+  `custom_components.spiderfarmer` logger.
 
 ## Development
 
-This repo's `custom_components/spiderfarmer/spiderwire/` is a git
-submodule pointing at [`1am/spiderwire`](https://github.com/1am/spiderwire).
-Clone with submodules to hack on both at once:
+The protocol library is consumed as a published package
+([`spiderwire`](https://pypi.org/project/spiderwire/),
+source at [`1am/spiderwire`](https://github.com/1am/spiderwire)).
+To hack on both at once, install spiderwire in editable mode from a
+local checkout instead of pulling it from PyPI:
 
 ```bash
-git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
-# or, if you already cloned:
-git submodule update --init --recursive
+git clone https://github.com/1am/spiderfarmer-ha.git
+git clone https://github.com/1am/spiderwire.git
+pip install -e ./spiderwire
 ```
 
 See [`DEVELOPMENT.md`](DEVELOPMENT.md) for symlinking this checkout
 into a dev HA instance, enabling debug logs, and the
 edit-reload-iterate loop.
+
+## License
+
+Copyright (c) 2026 [1AM](https://1am.pl)
+
+Released under the [MIT License](LICENSE) - free to use, modify, and
+distribute, including in commercial and closed-source products. The
+only requirement is that the copyright notice and license text are
+preserved in copies or substantial portions of the software.
 
 ## Disclaimer
 

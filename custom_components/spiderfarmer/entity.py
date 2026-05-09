@@ -32,15 +32,16 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
-from .coordinator import SpiderFarmerCoordinator
-from .spiderwire.registers import (
+from spiderwire.registers import (
     BlowerData,
     CO2SensorData,
     DeviceData,
     FanControllerData,
     SensorHubData,
 )
+
+from .const import DOMAIN
+from .coordinator import SpiderFarmerCoordinator
 
 
 # Map the *parsed* device class (which is wiring-aware via register count)

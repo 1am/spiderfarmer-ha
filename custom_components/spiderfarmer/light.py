@@ -28,7 +28,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .spiderwire.registers import FanControllerData, SensorHubData
+from spiderwire.registers import FanControllerData, SensorHubData
 
 from .coordinator import SpiderFarmerCoordinator
 from .entity import peripheral_device_info, suggested_object_id, unique_id
@@ -139,11 +139,13 @@ class SFLight1Entity(CoordinatorEntity[SpiderFarmerCoordinator], LightEntity):
         return _pct_to_ha(d.brightness_pct) if d else None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        pct = (
-            _ha_to_pct(kwargs[ATTR_BRIGHTNESS])
-            if ATTR_BRIGHTNESS in kwargs
-            else max(1, self._dimmer.brightness_pct if self._dimmer else 0) or 100
-        )
+        if ATTR_BRIGHTNESS in kwargs:
+            pct = _ha_to_pct(kwargs[ATTR_BRIGHTNESS])
+        else:
+            current = self._dimmer.brightness_pct if self._dimmer else 0
+            # Fall back to full brightness if the dimmer is parked at 0 —
+            # otherwise the user toggles "on" and gets an invisible 1 %.
+            pct = current if current > 0 else 100
         # Same sequence as `gss-ctrl light`: dimmer enable + brightness
         # first, hub gate last. Otherwise the light flashes the previous
         # brightness for a frame and after a turn-off (reg 10 = 0) it

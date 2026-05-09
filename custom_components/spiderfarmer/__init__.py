@@ -15,7 +15,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
-from .spiderwire.transport import RS485Transport
+from spiderwire.transport import RS485Transport
 
 from .const import CONF_BAUDRATE, CONF_BUS_NAME, CONF_SERIAL_PORT, DOMAIN
 from .coordinator import SpiderFarmerCoordinator
@@ -39,7 +39,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: SpiderFarmerConfigEntry)
 
     transport = await hass.async_add_executor_job(RS485Transport, port, baudrate)
     coordinator = SpiderFarmerCoordinator(hass, entry, transport)
-    await coordinator.async_config_entry_first_refresh()
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except BaseException:
+        # If the first refresh raises (ConfigEntryNotReady etc.), HA never
+        # calls async_unload_entry, so close the serial port ourselves —
+        # otherwise the next setup attempt fails with "device or resource busy".
+        await hass.async_add_executor_job(transport.close)
+        raise
 
     # Register the per-entry "bus" hub device so peripherals have
     # something to attach to via `via_device` even before their first

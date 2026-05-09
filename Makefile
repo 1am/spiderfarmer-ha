@@ -2,8 +2,10 @@
 #
 #   make deploy [HA_HOST=root@homeassistant.local HA_PORT=22]
 #                                       Push custom_components/spiderfarmer
-#                                       (including the spiderwire submodule)
-#                                       to a HA instance over SSH.
+#                                       to a HA instance over SSH. The
+#                                       spiderwire protocol library is
+#                                       installed from PyPI by Home
+#                                       Assistant via manifest.json.
 #   make deploy-restart                 Same as deploy, then `ha core restart`.
 #
 # Override any variable on the command line, e.g.:

@@ -1,8 +1,8 @@
 # Spiderfarmer-HA — developer guide
 
 How to hack on the Home Assistant integration (and the
-[`spiderwire`](https://github.com/1am/spiderwire) library it bundles)
-from a checkout of this repo.
+[`spiderwire`](https://github.com/1am/spiderwire) library it depends
+on) from a checkout of this repo.
 
 ## 1. Prerequisites
 
@@ -12,29 +12,32 @@ from a checkout of this repo.
   with SSH).
 - A USB-RS485 adapter wired to the GSS bus.
 
-## 2. Clone with submodules
+## 2. Clone the repo and install spiderwire
 
 ```bash
-git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
+git clone https://github.com/1am/spiderfarmer-ha.git
 cd spiderfarmer-ha
 ```
 
-The protocol library lives at
-`custom_components/spiderfarmer/spiderwire/` as a git submodule
-pointing at [`1am/spiderwire`](https://github.com/1am/spiderwire). If
-you already cloned without `--recurse-submodules`:
+The protocol library
+([`spiderwire`](https://pypi.org/project/spiderwire/), source at
+[`1am/spiderwire`](https://github.com/1am/spiderwire)) is consumed as
+a published package, declared in `manifest.json` `requirements`. Home
+Assistant installs it from PyPI on first start — nothing to do for a
+plain "use this integration" workflow.
+
+To hack on the library alongside the integration, clone it next to
+this repo and install editable into the same virtualenv (or HA Core
+checkout) you use for development:
 
 ```bash
-git submodule update --init --recursive
+git clone https://github.com/1am/spiderwire.git
+pip install -e ./spiderwire
 ```
 
-To pick up upstream library changes:
-
-```bash
-git submodule update --remote custom_components/spiderfarmer/spiderwire
-git add custom_components/spiderfarmer/spiderwire
-git commit -m 'Bump spiderwire'
-```
+To bump the version this integration pins, edit the `spiderwire`
+entry in `custom_components/spiderfarmer/manifest.json` `requirements`
+once a new release is published to PyPI.
 
 ## 3. Verify the bus from the CLI side
 
@@ -84,12 +87,13 @@ rsync -avz --delete custom_components/spiderfarmer/ \
       root@homeassistant.local:/config/custom_components/spiderfarmer/
 ```
 
-The integration imports the library via relative imports
-(`from .spiderwire.bus import …`). No separate pip install is needed —
-HA picks `spiderwire/` up as part of the custom component because the
-submodule clones it into the integration's own directory.
+The integration imports the library as a top-level package
+(`from spiderwire.bus import …`); HA installs it from PyPI on first
+start of the integration. For an editable checkout (see step 2),
+`pip install -e ./spiderwire` into the same Python environment HA
+runs in and the integration will pick up your local edits.
 
-Edits to `spiderwire/` are picked up on HA restart (or on the next
+Edits to the library are picked up on HA restart (or on the next
 **Reload** for files that don't touch `__init__.py` / `manifest.json` /
 `config_flow.py`).
 
@@ -108,16 +112,19 @@ Reload without a restart: **Developer Tools → YAML → Reload Logger**.
 ## 6. Fast iteration loop
 
 1. Edit a file in `custom_components/spiderfarmer/` (integration) or
-   `custom_components/spiderfarmer/spiderwire/` (library).
+   in your editable `spiderwire/` checkout (library).
 2. **Settings → Devices & Services → SpiderFarmer GSS → ⋮ → Reload**
    (no HA restart needed; keeps state).
 3. For `manifest.json` or `config_flow.py` changes, restart HA.
 
 ## 7. Submitting changes
 
-- Library changes (`spiderwire/`) must be committed and pushed to
-  [`1am/spiderwire`](https://github.com/1am/spiderwire) first; this
-  repo only stores the submodule pointer.
+- Library changes belong in
+  [`1am/spiderwire`](https://github.com/1am/spiderwire). After they
+  land and a new release is published to
+  [PyPI](https://pypi.org/project/spiderwire/), bump the `spiderwire`
+  pin in `custom_components/spiderfarmer/manifest.json` `requirements`
+  in this repo.
 - Bump `manifest.json` `version` on any user-visible change (HACS uses
   it for update detection).
 - Run `ruff check` / `ruff format` if you have ruff installed.

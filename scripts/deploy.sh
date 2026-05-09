@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Deploy the spiderfarmer custom_component to a Home Assistant instance over SSH.
 #
-# `custom_components/spiderfarmer/spiderwire/` is a git submodule. As long as
-# it is checked out locally (`git submodule update --init --recursive`), we
-# just rsync the whole integration tree — HA imports whatever files are on
-# disk, it does not fetch submodules itself.
+# The `spiderwire` protocol library is pulled from PyPI by Home Assistant
+# itself (declared in `manifest.json` `requirements`), so this script only
+# rsyncs the integration source tree.
 #
 # Configuration (env vars, all have sensible defaults):
 #   HA_HOST    SSH target, e.g. root@homeassistant.local   [root@10.10.10.10]
@@ -30,14 +29,6 @@ if [ ! -d custom_components/spiderfarmer ]; then
   exit 1
 fi
 
-# spiderwire/ is a submodule — refuse to deploy an empty one, otherwise HA
-# would silently fail to import `from .spiderwire.bus import …`.
-if [ ! -f custom_components/spiderfarmer/spiderwire/bus.py ]; then
-  echo "error: custom_components/spiderfarmer/spiderwire/ is missing or empty." >&2
-  echo "       Run: git submodule update --init --recursive" >&2
-  exit 1
-fi
-
 echo ">>> Deploying spiderfarmer integration to ${HA_HOST}:${HA_DEST}"
 
 "${SSH[@]}" "mkdir -p '${HA_DEST}'"
@@ -54,9 +45,8 @@ rsync -avz --delete \
 echo ">>> Verifying installation on host"
 "${SSH[@]}" bash -s <<EOF
 set -euo pipefail
-test -f '${HA_DEST}/__init__.py'        || { echo 'missing __init__.py' >&2; exit 1; }
-test -f '${HA_DEST}/manifest.json'      || { echo 'missing manifest.json' >&2; exit 1; }
-test -f '${HA_DEST}/spiderwire/bus.py'  || { echo 'missing spiderwire/bus.py' >&2; exit 1; }
+test -f '${HA_DEST}/__init__.py'   || { echo 'missing __init__.py' >&2; exit 1; }
+test -f '${HA_DEST}/manifest.json' || { echo 'missing manifest.json' >&2; exit 1; }
 echo "    OK: \$(grep -E '"version"' '${HA_DEST}/manifest.json')"
 EOF
 

@@ -5,11 +5,10 @@ peripheral bus (inline fans, CO₂ sensor, sensor hub, light driver) over
 a USB ↔ RS-485 adapter. No cloud, no app account.
 
 The Modbus protocol layer lives in a separate repo,
-[`spiderwire`](https://github.com/1am/spiderwire), and is pulled in
-here as a **git submodule** at
-`custom_components/spiderfarmer/spiderwire/`. The integration imports
-it as a relative package (`from .spiderwire.bus import …`); no PyPI
-hop, no separate `pip install`.
+[`spiderwire`](https://github.com/1am/spiderwire), and is published on
+PyPI as [`spiderwire`](https://pypi.org/project/spiderwire/). It is
+declared in `manifest.json` `requirements`, so Home Assistant installs
+it automatically — no submodule, no manual `pip install`.
 
 ## Requirements
 
@@ -17,8 +16,9 @@ hop, no separate `pip install`.
   `config_entry`-aware `DataUpdateCoordinator`).
 - A USB-RS485 adapter wired to the GGS bus (A/B + GND), visible in HA
   as `/dev/ttyUSB0` or similar.
-- `pyserial>=3.5` — pulled in automatically via `manifest.json`
-  `requirements`.
+- `pyserial>=3.5` and
+  [`spiderwire`](https://pypi.org/project/spiderwire/) — pulled in
+  automatically via `manifest.json` `requirements`.
 
 ## Install — HACS
 
@@ -29,21 +29,19 @@ hop, no separate `pip install`.
 4. Restart Home Assistant.
 5. **Settings → Devices & Services → Add Integration → SpiderFarmer GSS**.
 
-> HACS note: HACS clones the integration without recursing submodules,
-> so the released `main` branch ships a vendored copy of `spiderwire/`
-> rather than an empty submodule. The submodule pointer is what
-> developers see when they clone the repo with `git clone --recurse-submodules`.
-
 ## Install — manual
 
 ```bash
-git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
+git clone https://github.com/1am/spiderfarmer-ha.git
 cp -r spiderfarmer-ha/custom_components/spiderfarmer \
       /path/to/homeassistant/config/custom_components/
 ```
 
 Restart Home Assistant, then add the integration via **Settings →
-Devices & Services → Add Integration → SpiderFarmer GSS**.
+Devices & Services → Add Integration → SpiderFarmer GSS**. Home
+Assistant installs the
+[`spiderwire`](https://pypi.org/project/spiderwire/) protocol library
+from PyPI on first start.
 
 ## Configuration
 
@@ -55,7 +53,9 @@ You'll be asked for:
 | Baud rate | `115200` | Stock SpiderFarmer firmware speed |
 | Bus name | port basename | Friendly label for this bus (see "Multiple busses" below) |
 
-The integration polls every device on the bus every 5 seconds.
+The integration mirrors the OEM hub's tiered polling cadence: fast
+sensors (CO₂, sensor hub) every ~1 s, actuators (dimmer, blower) every
+~2.5 s, with a slower scan and a setpoint heartbeat in the background.
 
 ### Multiple busses
 
@@ -107,20 +107,23 @@ Entities are created automatically for each device discovered on the bus:
   [`gss-ctrl`](https://github.com/1am/spiderwire) from the SpiderWire
   repo: `gss-ctrl /dev/ttyUSB0 scan -v`.
 - **Bus errors / partial data** – the coordinator keeps the last good
-  reading for up to 3 consecutive failures per device before marking it
-  offline. Check HA logs under the `custom_components.spiderfarmer`
-  logger.
+  reading until a device misses ~30 consecutive polls before marking it
+  offline (the OEM bus is bursty — the sensor hub can go silent for
+  tens of seconds and then resume). Check HA logs under the
+  `custom_components.spiderfarmer` logger.
 
 ## Development
 
-This repo's `custom_components/spiderfarmer/spiderwire/` is a git
-submodule pointing at [`1am/spiderwire`](https://github.com/1am/spiderwire).
-Clone with submodules to hack on both at once:
+The protocol library is consumed as a published package
+([`spiderwire`](https://pypi.org/project/spiderwire/),
+source at [`1am/spiderwire`](https://github.com/1am/spiderwire)).
+To hack on both at once, install spiderwire in editable mode from a
+local checkout instead of pulling it from PyPI:
 
 ```bash
-git clone --recurse-submodules https://github.com/1am/spiderfarmer-ha.git
-# or, if you already cloned:
-git submodule update --init --recursive
+git clone https://github.com/1am/spiderfarmer-ha.git
+git clone https://github.com/1am/spiderwire.git
+pip install -e ./spiderwire
 ```
 
 See [`DEVELOPMENT.md`](DEVELOPMENT.md) for symlinking this checkout

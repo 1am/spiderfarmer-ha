@@ -13,13 +13,14 @@
 #         show_in_sidebar: true
 #         filename: custom_components/spiderfarmer/dashboard.yaml
 #
-# Entity IDs below follow Home Assistant's default slug rules:
-#   <domain>.<device_name>_<translation_key>
-# e.g. "SpiderFarmer sensor_hub" + "air_temperature" ⇒
-#      sensor.spiderfarmer_sensor_hub_air_temperature
+# Entity IDs below assume the default bus name "ttyusb0" (HA slugifies the
+# port basename "ttyUSB0"). The pattern is:
 #
-# If your device names differ (e.g. you renamed them in HA, or you have
-# multiple hubs), adjust the IDs after importing.
+#     <domain>.spiderfarmer_<bus_name>_<key>
+#
+# If you set a custom Bus name during config (e.g. "tent-veg"), or if you
+# renamed entities in HA, replace `ttyusb0` below with your slugified bus
+# name (e.g. `tent_veg`) before importing.
 
 title: SpiderFarmer
 icon: mdi:sprout
@@ -35,43 +36,59 @@ cards:
         square: false
         cards:
           - type: tile
-            entity: sensor.spiderfarmer_sensor_hub_air_temperature
+            entity: sensor.spiderfarmer_ttyusb0_air_temperature
             name: Air temperature
             icon: mdi:thermometer
           - type: tile
-            entity: sensor.spiderfarmer_sensor_hub_air_humidity
+            entity: sensor.spiderfarmer_ttyusb0_air_humidity
             name: Humidity
             icon: mdi:water-percent
           - type: tile
-            entity: sensor.spiderfarmer_sensor_hub_vpd
+            entity: sensor.spiderfarmer_ttyusb0_vpd
             name: VPD
             icon: mdi:gauge
           - type: tile
-            entity: sensor.spiderfarmer_sensor_hub_soil_temperature
+            entity: sensor.spiderfarmer_ttyusb0_soil_temperature
             name: Soil temperature
             icon: mdi:thermometer-low
           - type: tile
-            entity: sensor.spiderfarmer_co2_sensor_co2
+            entity: sensor.spiderfarmer_ttyusb0_ppfd
+            name: PPFD
+            icon: mdi:white-balance-sunny
+          - type: tile
+            entity: sensor.spiderfarmer_ttyusb0_co2
             name: CO₂
             icon: mdi:molecule-co2
 
       - type: markdown
         content: "## Controls"
 
-      # Grow light — on/off + brightness (routes to 0x04 dimmer)
+      # Grow light — on/off + brightness (writes routed to the 0x04 dimmer).
       - type: tile
-        entity: light.spiderfarmer_sensor_hub_light_1
+        entity: light.spiderfarmer_ttyusb0_light
         name: Grow light
         icon: mdi:lightbulb
         features:
           - type: light-brightness
 
+      # Direct 0–100 % brightness slider (visible on the card without
+      # opening the more-info dialog).
+      - type: tile
+        entity: number.spiderfarmer_ttyusb0_light_brightness
+        name: Brightness
+        icon: mdi:brightness-6
+
       # Blower / ventilation at 0x06 (OEM UI calls this "Light 2").
       # HA domain is `fan.` because that's HA's primitive for variable-
       # speed rotating things — the entity is surfaced as "Blower".
       - type: tile
-        entity: fan.spiderfarmer_blower_0x06_blower
+        entity: fan.spiderfarmer_ttyusb0_blower
         name: Blower
         icon: mdi:fan
         features:
           - type: fan-speed
+
+      - type: tile
+        entity: number.spiderfarmer_ttyusb0_blower_speed
+        name: Blower speed
+        icon: mdi:fan-speed-2

@@ -29,9 +29,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .spiderwire.bus import BusMaster, DEFAULT_ACTUATOR_INTERVAL
-from .spiderwire.registers import DeviceData
-from .spiderwire.transport import RS485Transport
+from spiderwire.bus import BusMaster, DEFAULT_ACTUATOR_INTERVAL
+from spiderwire.registers import DeviceData
+from spiderwire.transport import RS485Transport
 
 from .const import CONF_BUS_NAME, CONF_SERIAL_PORT, DEFAULT_SCAN_INTERVAL
 
