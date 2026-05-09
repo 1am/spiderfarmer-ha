@@ -17,6 +17,14 @@ it automatically — no submodule, no manual `pip install`.
 > Expect rough edges and verify behavior on your own bus before relying
 > on it.
 
+## Usage example
+
+Example of installing with `make deploy` and adding a custom integration + specifying USB-RS485 path
+
+https://github.com/user-attachments/assets/932e3baa-f6be-43df-a927-ac0351e02c64
+
+
+
 ## Requirements
 
 - Home Assistant **2024.12** or newer (uses `runtime_data` and the
