@@ -1,0 +1,14 @@
+{
+  "domain": "spiderfarmer",
+  "name": "SpiderFarmer GSS",
+  "codeowners": ["@1am"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/1am/spiderfarmer-ha/tree/main/custom_components/spiderfarmer",
+  "issue_tracker": "https://github.com/1am/spiderfarmer-ha/issues",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "loggers": ["custom_components.spiderfarmer"],
+  "requirements": ["pyserial>=3.5", "spiderwire==0.1.0a1"],
+  "version": "0.1.0"
+}
